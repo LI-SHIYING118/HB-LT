@@ -60,3 +60,12 @@ class PCA_filtering:
 
         dense_ids = pd.DataFrame(dense_ids, columns=[self.id_column])
         return dense_ids
+
+if __name__ == "__main__":
+    pca_analysis = PCA_filtering(file_path='your_file_name.txt')
+    pca_analysis.load_data()
+    pca_analysis.preprocess_data()
+    pca_analysis.perform_pca()
+    pca_analysis.visualize_pca()
+    dense_ids = pca_analysis.select_dense_region(x_start=1, x_end=0, y_start=1, y_end=0)
+    print(dense_ids)
