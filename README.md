@@ -1,6 +1,12 @@
 # HB-LT
 Haplotype Block LSTM Hierarchical Transformer.  
-This is for the article "Leveraging hierarchical structures for genetic block interaction studies using the hierarchical transformer"
+This is for the article `Leveraging hierarchical structures for genetic block interaction studies using the hierarchical transformer` doi: https://doi.org/10.1101/2024.11.18.24317486. 
+**Python version**: This code is in Python3.9
+
+**Package Requirements**: pytorch tensorflow scikit-learn
+
+The current framework is inspired by Liu and Lapata (2019) (https://github.com/nlpyang/hiersumm.git)
+
 ### Pre-analysis
 Researchers are strongly suggested to perform covariant pre-filtering methods to limit potential confounding effects. A PCA-based pre-filtering method is provided and can be found in "covariants_filtering.py."
 
