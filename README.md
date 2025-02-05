@@ -20,9 +20,10 @@ The main framework Haplotype Block LSTM hierarchical Transformer (HB-LT) can be 
 The LSTM filtering stage takes each block individually and tests its association with the phenotype based on the root of mean square error (RMSE). There is no universal way to decide what is the best RMSE cut-off threshold. The easiest option is to look through the line plot and take the top x% e.g. 10%, 20%. 
 
 #### HB-LT 
-The main output of the HB-LT framework is within and cross-block "attention" heatmap. HB-LT utilizes a multi-head attention mechanism, thus, for the output heatmap, users can decide to (1) take the sum of the multi-head attention filter (2) take the mean of the multi-head attention filter (3) or do nothing, output each attention head individually. 
+The main output of the HB-LT framework is within and cross-block "attention" heatmap. HB-LT utilizes a multi-head attention mechanism, the default setting is to output the mean of the multi-attention filter and use it as the output. However, the users can also take the sum or directly output multiple heatmaps without aggregation. 
 
-e.g. 
+#### Of Note
+HB-LT framework is intended to be used as a mining framework, any signals that HB-LT has mapped cannot be directly interpreted as a "real" interaction/epistasis signal. It should be used as a first-stage mining, any signals observed should be subjected to the following statistical and biological validations.
 
 
 
