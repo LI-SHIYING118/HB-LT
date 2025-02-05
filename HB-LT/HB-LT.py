@@ -117,7 +117,7 @@ def prepare_loader(labels_tensor, num_patients,test_size=0.2, random_state=42):
     test_loader = DataLoader(test_dataset, batch_size=num_patients, shuffle=False)
     return train_loader, test_loader, train_tensor, train_padding_mask,train_label,test_tensor, test_padding_mask, test_label
 
-num_patients=5
+num_patients=500
 train_loader, test_loader,train_tensor, train_padding_mask,train_label, test_tensor, test_padding_mask, test_label = prepare_loader(labels_tensor, num_patients, test_size=0.2, random_state=42)
 
 print(train_tensor.shape)
@@ -787,13 +787,13 @@ class TransformerInterLayer(nn.Module):
 
         return out, w_inter
 
-num_layers = 6
+num_layers = 2
 d_model= 16
 heads = 1
 d_ff= 16
 dropout= 0.1
 embeddings= torch.nn.Embedding(vocab_size, embedding_dim)
-inter_layers = [1]
+inter_layers = [0]
 inter_heads = 1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -883,9 +883,8 @@ for epoch in range(num_epochs):
 len(block_attention_weights_list)
 
 """
-Depends on how many heads you used in your model, the shape of the cross block output attention filter could be different
-Here, we provide three options, take the mean, sum, or output the attention filter for each head as it is. 
-The default of the attention filter is the last of the training loop, this can be changed in the following code.
+The default output of HB-LT takes the mean of multi-heatmaps and is used as the output. However, the users can also choose to take the sum
+or output multiple heatmaps as it is. 
 """
 
 import torch
@@ -901,15 +900,12 @@ def cross_block_visualize(tensor, operation='none'):
         tensor (torch.Tensor): Input tensor of shape [n, x, x]
         operation (str): One of 'mean', 'sum', or 'none'
     """
-    # Validate input
     if not isinstance(tensor, torch.Tensor) or tensor.dim() != 3:
         raise ValueError("Input must be a 3D PyTorch tensor")
 
-    # Get dimensions
     n_matrices = tensor.shape[0]
     matrix_size = tensor.shape[1]
 
-    # Process based on user choice
     if operation == 'mean':
         processed = tensor.mean(dim=0)
         plot_heatmap(processed, "Mean")
@@ -924,7 +920,7 @@ def cross_block_visualize(tensor, operation='none'):
 
 
 def plot_heatmap(matrix, title):
-    """Helper function to plot a single heatmap"""
+   
     plt.figure(figsize=(5, 4))
     sns.heatmap(matrix.detach().cpu().numpy(),
                 annot=True,
@@ -954,7 +950,7 @@ if choice not in operation_map:
 cross_block_visualize(block_attention_weights_list[-1].squeeze(), operation_map[choice])
 
 """
-For the within block attention filter, same option is also provided, mean, sum or output multi head as it is. 
+For the within-block attention filter, the same option is also provided, mean, sum, or output multiple heatmaps as it is. 
 """
 
 import torch
@@ -968,7 +964,7 @@ def plot_attention_heatmap(matrix, title, ax=None):
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 6))
     sns.heatmap(matrix,
-                annot=False,  # Disable annotations for large matrices
+                annot=False, 
                 fmt=".2f",
                 cmap="viridis",
                 cbar=True,
@@ -985,7 +981,7 @@ def process_4d_attention_tensor(tensor, operation='none'):
         tensor (torch.Tensor): Input tensor of shape [n_blocks, n_heads, seq_len, seq_len]
         operation (str): One of 'mean', 'sum', or 'none'
     """
-    # Validate input
+
     if not isinstance(tensor, torch.Tensor) or tensor.dim() != 4:
         raise ValueError("Input must be a 4D PyTorch tensor of shape [n_blocks, n_heads, seq_len, seq_len]")
 
@@ -998,15 +994,15 @@ def process_4d_attention_tensor(tensor, operation='none'):
     if operation in ['mean', 'sum']:
         fig, axes = plt.subplots(1, n_blocks, figsize=(5 * n_blocks, 5))
         if n_blocks == 1:
-            axes = [axes]  # Ensure axes is always a list
+            axes = [axes] 
     else:  # 'none' operation
         fig, axes = plt.subplots(n_blocks, n_heads, figsize=(5 * n_heads, 5 * n_blocks))
         if n_blocks == 1:
-            axes = [axes]  # Ensure axes is always a list for single block
+            axes = [axes]  
 
     # Process each block
     for block_idx in range(n_blocks):
-        block_tensor = tensor[block_idx]  # Shape: [n_heads, seq_len, seq_len]
+        block_tensor = tensor[block_idx] 
 
         if operation == 'mean':
             processed = block_tensor.mean(dim=0).detach().cpu().numpy()
@@ -1047,21 +1043,18 @@ if choice not in operation_map:
 
 
 def reshape_to_4d(tensor: torch.Tensor, first_dim: int) -> torch.Tensor:
-    # Get original dimensions
     orig_dim0, orig_dim1, orig_dim2 = tensor.shape
 
-    # Verify dimensions can be divided
     if orig_dim0 % first_dim != 0:
         raise ValueError(f"Cannot split dimension {orig_dim0} into {first_dim} chunks. " +
                          f"Remainder: {orig_dim0 % first_dim}")
 
-    # Calculate second dimension automatically
     second_dim = orig_dim0 // first_dim
 
     return tensor.view(first_dim, second_dim, orig_dim1, orig_dim2)
 
 
-within_attention = reshape_to_4d(within_block_attention_list[-1].squeeze(), 3)  # New shape [3, 4, 67, 67]
+within_attention = reshape_to_4d(within_block_attention_list[-1].squeeze(), num_block) 
 
 print("Original shape:", original_tensor.shape)
 print("New shape:", reshaped_tensor.shape)
